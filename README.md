@@ -3,7 +3,7 @@ Equipo enfocado en presentar las principales funciones utilizadas al tratar dato
 
 ## Mayra  
 ## Ibeth   
-## Diana
+## Diana (pag 207 - 217)
 Vamos a aprender a:
 1. Determinar que cadenas de carácteres coinciden con un patrón.
 2. Encontrar las posiciones de las coincidencias.
