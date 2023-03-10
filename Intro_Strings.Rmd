@@ -1,0 +1,319 @@
+---
+title: "Strings with stringr. R-ladies Morelia"
+output: html_document
+date: "2023-02-26"
+---
+
+# Cadenas y caracteres especiales
+
+En esta sesión aprenderemos sobre las cadenas de caracteres o string. Lo primero será conocer las expresiones regulares o _regex_, 
+las cuales son un lenguaje conciso para describir patrones, que se utilizan para hacer coincidir combinaciones de caracteres en cadenas.
+
+Lo primero será instalar los paquetes y llamar a las bibliotecas. Stringr no es parte del núcleo usual de tidyverse así que debemos llamarlo explícitamente.
+```{r, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(stringr)
+
+```
+
+Puedes crear cadenas usando comillas simples o dobles.
+Si olvidas cerrar las comillas verás el símbolo de + en la consola. 
+¡Presiona Escape para intentarlo de nuevo!
+```{r cars}
+
+string1 <- "Esta es una cadena"
+string2 <- 'Si quieres crear una cadena que contiene múltiples "comillas" entonces te recomiendo usar las comillas simples'
+
+```
+
+Mencionando Escape, debemos usar \ para escapar un caracter especial y usarlo de manera literal, por ejemplo las comillas. 
+```{r}
+
+comilla_doble <- "\"" 
+comilla_simple <- '\''
+barra_invertida <- "\\" #para usar la barra invertida la duplicamos
+
+```
+
+Existen otros caracteres especiales 
+```{r}
+
+salto_de_línea<-"\n"
+tabulación<-"\t"
+letra_griega<-"\u00b5"
+
+```
+
+También podemos crear un vector de caracteres
+```{r}
+
+equipo_textos<-c("Dianis", "Ibeth","May", "Nelly")
+
+```
+
+Hasta ahora hemos visto las representaciones impresas de una cadena. 
+Para verlas sin los caracteres especiales el siguiente comando.
+```{r}
+
+writeLines(comilla_doble)
+writeLines(comilla_simple)
+writeLines(salto_de_línea)
+writeLines(barra_invertida)
+writeLines(tabulación)
+writeLines(letra_griega)
+
+```
+
+### Largo de la cadena
+R base tiene muchas funciones para trabajar con cadenas de caracteres, pero las evitaremos porque pueden ser incosistentes, lo que hace que sean difíciles de recordar. En su lugar, utilizaremos funciones del paquete stringr. Estas tienen nombres más intuitivos y todas empienzan con str_. Algo útil es que podemos echar mano del autocompletado
+```{r}
+
+stringr::str_length(c("a", "R Ladies Morelia", NA)) #número de caracteres
+
+#stringr::str_
+
+```
+
+### Combinar cadenas
+
+Para combinar dos o más cadenas utiliza str_c() y con el argumento sep controlamos cómo separarlas.
+```{r}
+
+stringr::str_c("No", "es","No", sep = ",")
+str_c("h", "t", "m", "l")
+
+```
+
+Para que los valores faltantes se impriman como NA entonces usaremos str_replace_na(). En el siguiente ejemplo veremos como str_c es una función vectorizada que automáticamente recicla los vectores más cortos hasta alcanzar la extensión del más largo.
+
+```{r}
+
+x <- c("amiga date cuenta", NA)
+str_c("|-", x, "-|")
+str_c("|-", str_replace_na(x), "-|")
+str_c("Juanita", c("fue", "es", "será"), "consciente")
+str_c("Ana", c("fue", "es", "será"), "consciente") #aquí hay dos vectores del mismo tamaño
+
+```
+
+Los objetos de extensión 0 se descartan de manera silenciosa. Esto es particularmente útil en conjunto con if (si):
+
+```{r}
+
+nombre <- "Chonita"
+hora_del_dia <- "mañana"
+cumpleanios <- FALSE
+
+str_c(
+  "Que tengas una buena ", hora_del_dia, ", ", nombre,
+  if (cumpleanios) " y ¡FELIZ CUMPLEAÑOS!",
+  "."
+)
+
+
+nombre <- "Chonita"
+hora_del_dia <- "mañana"
+cumpleanios <- TRUE
+
+str_c(
+  "Que tengas una buena ", hora_del_dia, ", ", nombre,
+  if (cumpleanios) " y ¡FELIZ CUMPLEAÑOS!",
+  "."
+)
+
+```
+
+Para colapsar un vector de cadenas en una sola, utiliza collapse:
+
+```{r}
+str_c(c("x", "y", "z"), collapse = ", ")
+```
+
+### Dividir cadenas
+
+Puedes extraer partes de una cadena utilizando str_sub(). Al igual que la cadena, str_sub() tiene como argumentos start (inicio) y end (fin), que indican la posición (inclusiva) del subconjunto que se quiere extraer:
+
+```{r}
+
+x <- c("vatairea", "vochysia", "brosimum")
+str_sub(x, 1, 3)
+
+# los números negativos cuentan de manera invertida desde el final
+str_sub(x, -3, -1)
+
+# también puede usarse en forma de asignación para modificar una cadena
+str_sub(x, 1, 1) <- str_to_upper(str_sub(x, 1, 1))
+x
+
+str_to_title(x)
+
+```
+### Locales
+
+Debido a que las reglas no son iguales para todos los idiomas debemos especificar el entorno local. Por ejemplo, el turco tiene dos i (una con punto y otra sin punto) y diferentes reglas para convertirlas en mayúscula.
+
+```{r}
+
+str_to_upper(c("i", "ı"))
+
+str_to_upper(c("i", "ı"), locale = "tr")
+
+```
+
+Las funciones order() y sort() de R base *ordenan* las cadenas usando el locale actual. Si quieres un comportamiento consistente a través de diferentes computadoras, sería preferible usar str_sort() y str_order(), que aceptan un argumento adicional para definir el locale:
+
+```{r}
+x <- c("arándano", "espinaca", "banana")
+
+str_sort(x, locale = "haw") # Hawaiano
+str_sort(x, locale = "es")  # Español
+
+```
+## Buscar coincidencias de patrones con expresiones regulares
+
+Para aprender sobre expresiones regulares usaremos str_view() y str_view_all() (view = ver). Estas funciones toman un vector de caracteres y una expresión regular y te muestran cómo coinciden. Recuerden, ¡un paso a la vez! Iremos de lo sencillo a lo complejo.
+
+### Coincidencias básicas
+```{r}
+
+x <- c("manzana", "banana", "pera")
+str_view(x, "an")
+
+```
+
+El siguiente paso en complejidad es ".", que coincide con cualquier caracter (excepto un salto de línea):
+
+```{r}
+
+str_view(x, ".a.")
+
+```
+
+¿Y si queremos buscar un punto literal? ¿Recuerdan el escape \ de las cadenas?
+Al igual que en las cadenas, las expresiones regulares usan la barra invertida, \, para “escapar” los comportamientos especiales. Por lo tanto, para hacer coincidir un ., necesitas la expresión regular \.. Lamentablemente, esto crea una problema. Estamos usando cadenas para representar una expresión regular y en ellas \ también se usa como símbolo de “escape”. Por lo tanto, para crear la expresión regular \. necesitamos la cadena "\\."
+
+```{r}
+
+# Para crear una expresión regular necesitamos \\
+punto <- "\\."
+
+# Pero la expresión en sí misma solo contiene una \
+writeLines(punto)
+
+
+# Esto le dice a R que busque el . de manera explícita
+str_view(c("abc", "a.c", "bef"), "a\\.c")
+
+```
+
+¿Y para escapar la barra invertida? Si \ se utiliza para escapar un caracter en una expresión regular, ¿cómo coincidir de manera literal una \? Bueno, necesitarías escaparla creando la expresión regular \\. Para crear esa expresión regular necesitas usar una cadena, que requiere también escapar la \. Esto quiere decir que para coincidir literalmente \ necesitas escribir "\\\\" — ¡necesitas cuatro barras invertidas para coincidir una!
+
+```{r}
+
+x <- "a\\b"
+
+writeLines(x)
+
+str_view(x, "\\\\")
+
+```
+
+### Anclas
+
+Por defecto, las expresiones regulares buscarán una coincidencia en cualquier parte de una cadena. Suele ser útil anclar una expresión regular para que solo busque coincidencias al inicio o al final.
+
+```{r}
+
+x <- c("arándano", "banana", "pera")
+
+#Para buscar coincidencias al inicio
+
+str_view(x, "^a")
+
+#Para buscar coincidencias al final
+
+str_view(x, "a$")
+
+#Para forzar que una expresión regular coincida con una cadena completa
+
+x <- c("pie de manzana", "manzana", "queque de manzana")
+
+str_view(x, "manzana")
+
+```
+
+## Clases de caracteres y alternativas
+
+Existe una serie de patrones especiales que coinciden con más de un caracter. Ya has visto ., que coincide con cualquier caracter excepto un salto de línea. Hay otras cuatro herramientas que son de utilidad:
+
+\d: coincide con cualquier dígito.
+\s: coincide con cualquier espacio en blanco (por ejemplo, espacio simple, tabulador, salto de línea).
+[abc]: coincide con a, b o c.
+[^abc]: coincide con todo menos con a, b o c.
+Recuerda que para crear una expresión regular que contenga \d o \s necesitas escapar la \ en la cadena, por lo que debes escribir "\\d" o "\\s".
+
+Utilizar una clase de caracter que contenga en su interior un solo caracter puede ser una buena alternativa a la barra invertida cuando quieres incluir un solo metacaracter en la expresión regular. Muchas personas encuentran que así es más fácil de leer.
+
+
+```{r}
+
+# Buscar de forma literal un caracter que usualmente tiene un significado especial en una expresión regular
+
+str_view(c("abc", "a.c", "a*c", "a c"), "a[.]c")
+str_view(c("abc", "a/c", "a*c", "a c"), "a[/]c")
+
+```
+
+Esto funciona para la mayoría (pero no para todos) los metacaracteres de las expresiones regulares: $ . | ? * + ( ) [ {. Desafortunadamente, existen unos pocos caracteres que tienen un significado especial incluso dentro de una clase de caracteres y deben manejarse con barras invertidas para escaparlos: ] \ ^ y -.
+
+Puedes utiizar una disyunción para elegir entre uno más patrones alternativos. Por ejemplo, abc|d..a concidirá tanto con ‘“abc”’, como con "duna". Ten en cuenta que la precedencia de | es baja, por lo que abc|xyz coincidirá con abc o xyz, no con abcyz o abxyz. Al igual que en expresiones matemáticas, si el valor de | se vuelve confuso, utiliza paréntesis para dejar claro qué es lo que quieres:
+```{r}
+
+#str_view(c("abc", "a\c", "a*c", "a c"), "a[\]c")
+str_view(c("cómo", "como"), "c(ó|o)mo") # aquí cuál es el caracter especial?
+
+```
+### Repetición
+
+El siguiente paso en términos de poder implica controlar cuántas veces queremos que se encuentre un patrón:
+
+?: 0 o 1
++: 1 o más
+*: 0 o más
+
+```{r}
+x <- "1888 es el año más largo en números romanos: MDCCCLXXXVIII"
+str_view(x, "CC?")
+```
+
+También puedes especificar el número de coincidencias que quieres encontrar de manera precisa:
+
+{n}: exactamente n
+{n,}: n o más
+{,m}: no más de m
+{n,m}: entre n y m
+
+```{r}
+
+str_view(x, "C{2}")
+
+```
+
+Por defecto, este tipo de coincidencias son “avaras” (greedy): tratarán de coincidir con la cadena más larga posible. También puedes hacerlas “perezosas” (lazy) para que coincidan con la cadena más corta posible, poniendo un ? después de ellas. Esta es una característica avanzada de las expresiones regulares, pero es útil saber que existe:
+
+```{r}
+str_view(x, 'C{2,3}?')
+
+```
+
+### Agrupamiento y referencias previas
+
+Anteriormente aprendiste sobre el uso de paréntesis para desambiguar expresiones complejas. Los paréntesis también sirven para crear un grupo de captura numerado (número 1, 2, etc.). Un grupo de captura guarda la parte de la cadena que coincide con la parte de la expresión regular entre paréntesis. Puedes referirte al mismo texto tal como fue guardado en un grupo de captura utilizando referencias previas, como \1, \2 etc. Por ejemplo, la siguiente expresión regular busca todas las frutas que tengan un par de letras repetido.
+
+```{r}
+frutas<-c("banana", "papaya", "ananá", "coco")
+str_view(frutas, "(..)\\1", match = TRUE)
+```
+
+
