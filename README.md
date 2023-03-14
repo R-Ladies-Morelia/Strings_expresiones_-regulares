@@ -1,8 +1,10 @@
-# Strings expresiones regulares
+# Strings expresiones regulares  
 Equipo enfocado en presentar las principales funciones utilizadas al tratar datos del tipo str 
+El material fue tomado del libro [R for data science](https://r4ds.had.co.nz/) del capítulo strings  
 
 ## Mayra  
 ## Ibeth   
+
 ## Diana (pag 207 - 217)
 Vamos a aprender a:
 1. Determinar que cadenas de carácteres coinciden con un patrón.
@@ -12,3 +14,7 @@ Vamos a aprender a:
 5. Dividir una cadena de carácteres por medio de una coincidencia.
 
 ## Nelly  
+1. Ejercicios 
+## Otros links
+1. [Crucigrama de regex](https://regexcrossword.com/challenges/beginner/puzzles/1)
+2. [Libro perl regex](https://catonmat.net/perl-one-liners-explained-part-six)
