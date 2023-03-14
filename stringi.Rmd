@@ -1,0 +1,95 @@
+---
+title: "EjerciciosString"
+author: "NellySelemDelLibroRForDataScience"
+date: "10/3/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicios en string 
+```{r library}
+library(tidyverse)
+library(stringi)
+
+```
+
+
+
+## 14.6 Other uses of regular expressions
+There are two useful function in base R that also use regular expressions:
+`apropos()` searches all objects available from the global environment. This is useful if you can’t quite remember the name of the function.
+
+>apropos("replace")  
+>#> [1] "%+replace%"       "replace"          "replace_na"       >"setReplaceMethod"  
+>#> [5] "str_replace"      "str_replace_all"  "str_replace_na"   "theme_replace"  
+
+ `dir()` lists all the files in a directory. The pattern argument takes a regular expression and only returns file names that match the pattern. For example, you can find all the R Markdown files in the current directory with:
+
+> head(dir(pattern = "\\.Rmd$"))  
+> #> [1] "communicate-plots.Rmd" "communicate.Rmd"    "datetimes.Rmd"         
+> #> [4] "EDA.Rmd"               "explore.Rmd"          "factors.Rmd"  
+> (If you’re more comfortable with “globs” like *.Rmd, you can convert them to regular expressions with glob2rx()):  
+
+## 14.7 stringi  
+`stringr` is built on top of the `stringi` package. stringr is useful when you’re learning because it exposes a minimal set of functions, which have been carefully picked to handle the most common string manipulation functions. stringi, on the other hand, is designed to be comprehensive. It contains almost every function you might ever need: stringi has 256 functions to stringr’s 49.
+
+If you find yourself struggling to do something in `stringr`, it’s worth taking a look at `stringi`. The packages work very similarly, so you should be able to translate your stringr knowledge in a natural way. The main difference is the prefix: `str_` vs. `stri_`.
+
+### 14.7.1 Exercises
+Find the stringi functions that:  
+
+1 Count the number of words. 
+```{r}
+x <- c("apple", "banana", "pear")
+apropos("count")
+stri_count(x, "a")
+?stri_count
+stri_count(s, regex='\\p{L}+')
+```
+Entonces Le pregunte a [chatGPT](https://chat.openai.com/chat)
+qué es la expresión `'\\p{L}+'`  
+
+
+2. Cargar el archivo a un string
+
+### Editar un fasta
+Tenemos un fasta mltilinea, muchos programas solo reciben uni-linea
+```{bash}
+
+perl -p -i -e  's/\n/\t/' mifasta  
+perl -p -i -e  's/\t/\n/' mifasta  
+perl -p -i -e  's/\t//g' mifasta  
+```
+
+```{r}
+# cargar el archivo
+file_str <- paste(readLines("mifasta"), collapse="\n")
+file_str
+#sustituir los saltos de linea por tabulador
+file_str<-stri_replace_all_regex(file_str,"\n","\t")
+file_str
+# sustituir el primer tabulador por salto de línea
+file_str<-stri_replace_first_regex(file_str,"\t","\n")
+file_str
+# sustituir todos los tabuladores por nada para quedarnos con 
+#la secuencia en una línea 
+file_str<-stri_replace_all_regex(file_str,"\t","")
+file_str
+# Guardaremos el archivo en un archivo de texto 
+cat(file_str,file="mifastar",append=TRUE)
+
+```
+
+### Ejercicios extra
+#### Probar el crucigrama 
+Para probar el crucigrama me hice unas expresiones en perl 
+```{bash}
+cat cadenas
+perl -ne '/[please]+/ && print' cadenas
+perl -p -i -e '/\r//' miarchivo
+
+```
+
