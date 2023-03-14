@@ -1,0 +1,305 @@
+---
+title: "Strings_Diana"
+author: "Diana Piñango"
+date: "2023-03-14"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# ¿Que aprenderemos?
+
+Aprenderemos sobre las cadenas de caracteres o string. A lo de esta sección, conoceremos las expresiones regulares o *regex*, las cuales son un lenguaje conciso para describir patrones, que se utilizan para hacer coincidir combinaciones de caracteres en cadenas.
+
+Aprenderemos a determinar, extraer y reemplazar coincidencias y por último veremos cómo se divide una cadena de caracteres.
+
+```{r, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(stringr)
+
+```
+
+## Strings
+
+Puedes crear cadenas usando comillas simples o dobles.
+
+```{r cars}
+string1 <- "Esta es una cadena"
+string2 <- 'Si quieres crear una cadena que contiene múltiples "comillas" entonces te recomiendo usar las comillas simples'
+```
+
+### Consideraciones importantes
+
+Muchas funciones que conocemos pueden ser usadas para manipular strings usando str_ al inicio.
+
+Debido a que las reglas no son iguales para todos los idiomas debemos especificar el entorno local. 
+
+Por ejemplo, las funciones order() y sort() de R base *ordenan* las cadenas usando el locale actual. Si quieres un comportamiento consistente a través de diferentes computadoras, sería preferible usar str_sort() y str_order(), que aceptan un argumento adicional para definir el locale:
+
+```{r}
+x <- c("arándano", "espinaca", "banana")
+str_sort(x, locale = "haw") # Hawaiano
+str_sort(x, locale = "es")  # Español
+```
+
+## Clases de caracteres y alternativas
+
+Existe una serie de patrones especiales que coinciden con más de un caracter. Ya has visto ., que coincide con cualquier caracter excepto un salto de línea. Hay otras cuatro herramientas que son de utilidad:
+
+##### \d: coincide con cualquier dígito.
+##### \s: coincide con cualquier espacio en blanco (por ejemplo, espacio simple, tabulador, salto de línea).
+#### [abc]: coincide con a, b o c.
+#### [^abc]: coincide con todo menos con a, b o c.
+
+
+## Determinar Coincidencias
+
+Vamos a buscar coincidencias usando str_view() y str_detect(). 
+
+```{r}
+x <- c("manzana", "banana", "pera")
+str_view(x, "an")
+```
+El siguiente paso en complejidad es ".", que coincide con cualquier caracter (excepto un salto de línea):
+
+```{r}
+str_view(x, ".a.")
+```
+
+```{r}
+str_view_all(x, ".a.")
+```
+
+```{r}
+x <- c("apple", "banana", "pear")
+x
+str_detect(x, "e")
+```
+Ahora usemos el vector words y exploremos un poco.
+
+```{r}
+head(words)
+
+str_detect(words, "^t")
+```
+
+En un sentido numerico podemos considerar los verdaderos y falsos como 1 y 0, respectivamente. Así tiene sentido usar las siguientes funciones
+
+```{r}
+sum(str_detect(words, "^t"))
+
+mean(str_detect(words, "[aeiou]$"))
+```
+
+### Ejemplo 1
+
+Encontrar todas las palabras que NO contienen vocales
+
+Manera 1
+
+```{r}
+no_vowels_1 <- !str_detect(words, "[aeiou]")
+```
+
+Manera 2
+
+```{r}
+no_vowels_2 <- str_detect(words, "^[^aeiou]+$")
+```
+
+Para saber que efectivamente no_vowels_1 y no_vowels_2 guardan la misma información, usemos la función identical().
+
+```{r}
+identical(no_vowels_1, no_vowels_2)
+```
+
+Así comprobamos que las condiciones son las mismas
+
+### Ejemplo 2
+
+Ahora, supongamos que queremos encontrar todas las palabras que terminen en x y que luego queremos verlas explícitamente.
+
+```{r}
+str_detect(words, "x$")
+
+words[str_detect(words, "x$")]
+```
+
+Notemos que esta es otra manera de acceder a la información de un vector.
+
+### Ejemplo 3
+
+También podemos filtrar en un data frame
+
+```{r}
+df <- tibble(
+  word = words,
+  i = seq_along(word)
+)
+
+df
+df %>%
+  filter(str_detect(words, "x$"))
+```
+
+
+#### Ejemplo 4
+
+Podemos contar las coincidencias en cada componente de nuestro objeto con str_count().
+
+```{r}
+x <- c("apple", "banana", "pear")
+str_count(x, "a")
+```
+
+
+### Ejemplo 5
+
+
+```{r}
+df %>%
+  mutate(
+    vowels = str_count(word, "[aeiou]"),
+    consonants = str_count(word, "[^aeiou]")
+  )
+```
+
+
+## Extract Matches
+
+Para aprender a extraer coincidencias, vamos a manipular el vector sentences
+
+
+```{r}
+length(sentences)
+head(sentences)
+```
+
+Ahora supongamos que nos interesa encontrar todas las oraciones que contienen algún color.
+
+```{r}
+colors <- c(
+  " red ", " orange ", " yellow ", " green ", " blue ", " purple ", " brown "
+)
+color_match <- str_c(colors, collapse = "|")
+color_match
+```
+
+Ahora podemos seleccionar las oraciones que contienen un color y luego podemos extraer el color para saber cuales son los colores que coinciden.
+
+```{r}
+has_color <- str_subset(sentences, color_match)
+length(has_color)
+head(has_color)
+```
+
+
+```{r}
+matches <- str_extract(has_color, color_match)
+matches
+head(matches)
+
+```
+
+Notemos que str_extract() solo extrae el primer match. Pero ¿que pasa si queremos seleccionar las oraciones que tienen más de un color?
+
+```{r}
+sum(str_count(sentences, color_match) > 1)
+more <- sentences[str_count(sentences, color_match) > 1]
+str_view_all(more, color_match)
+```
+
+Si queremos ver cuales son los colores que están en more, podemos extraer
+
+```{r}
+str_extract(more, color_match)
+```
+
+Notemos que de nuevo solo extrae la primera coincidencia. Para extraer todas las coincidencias debemos usar la función
+
+```{r}
+str_extract_all(more, color_match)
+```
+
+Si usamos simplify = TRUE tendremos una matrix con todas las coincidencias
+
+```{r}
+str_extract_all(more, color_match, simplify = TRUE)
+```
+
+
+## Replacing Matches
+
+### Ejemplo 1
+
+La función str_replace() nos ayudar a reemplazar caracteres por otros valores.
+
+```{r}
+x <- c("apple", "pear", "banana")
+str_replace(x, "[aeiou]", "-")
+```
+
+Note que reemplaza solo la primera coincidencia. 
+
+```{r}
+str_replace_all(x, "[aeiou]", "-")
+```
+
+### Ejemplo 2
+
+Podemos realizar multiples reemplazos
+
+```{r}
+x <- c("1 house", "2 cars", "3 people")
+str_replace_all(x, c("1" = "one", "2" = "two", "3" = "three"))
+```
+
+### Ejemplo 3
+
+Veamos un ejemplo con una instrucción con expresiones regulares
+
+
+```{r}
+head(sentences)
+```
+
+```{r}
+sentences %>%
+  str_replace("([^ ]+) ([^ ]+) ([^ ]+)", "\\1 \\3 \\2") %>%
+  head(5)
+```
+
+## Splitting
+
+Con str_split() vamos a dividir una cadena en varias partes
+
+### Ejemplo 1
+
+
+```{r}
+sentences %>%
+  head(5) %>%
+
+
+  str_split(" ", simplify = TRUE)
+
+```
+
+Estamos dividiendo las oraciones en cada espacio.
+
+### Ejemplo 2
+
+```{r}
+x <- c("AACXX", "BCOY")
+str_split(x,"C")
+```
+
+### Ejemplo 3
+
+```{r}
+"a|b|c|d" %>%
+  str_split("\\|")
+```
+
+
