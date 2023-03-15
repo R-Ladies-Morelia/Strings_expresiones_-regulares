@@ -6,7 +6,7 @@ El material fue tomado del libro [R for data science](https://r4ds.had.co.nz/) d
 Introducción a stringr  
 
 ## Ibeth   
-Definición de expresiones regulares\n
+Definición de expresiones regulares \n
 Link donde pueden practicar las expresiones regulares [regexr](https://regexr.com/)
 
 ## Diana (pag 207 - 217)
